@@ -9,6 +9,10 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 model = pickle.load(open("model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 
+# Create a copy for model usage
+df_model = df.copy()
+df_model['label'] = df_model['quality'].apply(lambda x: 1 if x >= 7 else 0)
+df_model.drop('quality', axis=1, inplace=True)
 
 # Sidebar
 st.sidebar.title("Navigation")
@@ -44,7 +48,9 @@ elif page == "Visualization":
     st.plotly_chart(fig1)
 
     st.subheader("Alcohol vs Quality")
-    fig2 = px.box(df, x='label', y='alcohol', title="Alcohol Content by Quality")
+    df_vis = df.copy()
+    df_vis['label'] = df_vis['quality'].apply(lambda x: 'Good' if x >= 7 else 'Bad')
+    fig2 = px.box(df_vis, x='label', y='alcohol', title="Alcohol Content by Quality")
     st.plotly_chart(fig2)
 
     st.subheader("Correlation Heatmap")
@@ -52,7 +58,7 @@ elif page == "Visualization":
     st.plotly_chart(fig3)
 
     st.subheader("Alcohol vs Sulphates")
-    fig4 = px.scatter(df, x='alcohol', y='sulphates', color='label', title="Alcohol vs Sulphates")
+    fig4 = px.scatter(df_vis, x='alcohol', y='sulphates', color='label', title="Alcohol vs Sulphates")
     st.plotly_chart(fig4)
 
 # Predict
@@ -60,24 +66,28 @@ elif page == "Predict":
     st.subheader("Enter Wine Features")
     try:
         with st.form("prediction_form"):
-            fixed_acidity = st.number_input("Fixed Acidity", 4.0, 16.0, help="Acidity from non-volatile acids (4.0-16.0)")
-            volatile_acidity = st.number_input("Volatile Acidity", 0.1, 1.5, help="Acidity from volatile acids (0.1-1.5)")
-            citric_acid = st.number_input("Citric Acid", 0.0, 1.0, help="Citric acid content (0.0-1.0)")
-            residual_sugar = st.number_input("Residual Sugar", 0.9, 15.0, help="Sugar content (0.9-15.0)")
-            chlorides = st.number_input("Chlorides", 0.01, 0.2, help="Salt content (0.01-0.2)")
-            free_sulfur_dioxide = st.number_input("Free Sulfur Dioxide", 1.0, 70.0, help="Free SO2 (1.0-70.0)")
-            total_sulfur_dioxide = st.number_input("Total Sulfur Dioxide", 6.0, 300.0, help="Total SO2 (6.0-300.0)")
-            density = st.number_input("Density", 0.99000, 1.00500, help="Density of wine (0.99000-1.00500)")
-            pH = st.number_input("pH", 2.5, 4.0, help="pH level (2.5-4.0)")
-            sulphates = st.number_input("Sulphates", 0.3, 2.0, help="Sulphate content (0.3-2.0)")
-            alcohol = st.number_input("Alcohol", 8.0, 15.0, help="Alcohol content in % (8.0-15.0)")
+            fixed_acidity = st.number_input("Fixed Acidity", 4.0, 16.0)
+            volatile_acidity = st.number_input("Volatile Acidity", 0.1, 1.5)
+            citric_acid = st.number_input("Citric Acid", 0.0, 1.0)
+            residual_sugar = st.number_input("Residual Sugar", 0.9, 15.0)
+            chlorides = st.number_input("Chlorides", 0.01, 0.2)
+            free_sulfur_dioxide = st.number_input("Free Sulfur Dioxide", 1.0, 70.0)
+            total_sulfur_dioxide = st.number_input("Total Sulfur Dioxide", 6.0, 300.0)
+            density = st.number_input("Density", 0.99000, 1.00500)
+            pH = st.number_input("pH", 2.5, 4.0)
+            sulphates = st.number_input("Sulphates", 0.3, 2.0)
+            alcohol = st.number_input("Alcohol", 8.0, 15.0)
+
+            # ✅ Add missing 12th feature
+            volatile_phenols = st.number_input("Volatile Phenols", 0.0, 1.0)
+
             submitted = st.form_submit_button("Predict")
 
         if submitted:
             with st.spinner("Predicting..."):
                 input_data = np.array([[fixed_acidity, volatile_acidity, citric_acid, residual_sugar,
                                         chlorides, free_sulfur_dioxide, total_sulfur_dioxide,
-                                        density, pH, sulphates, alcohol]])
+                                        density, pH, sulphates, alcohol, volatile_phenols]])
                 input_scaled = scaler.transform(input_data)
                 pred = model.predict(input_scaled)[0]
                 prob = model.predict_proba(input_scaled)[0][pred]
@@ -90,8 +100,8 @@ elif page == "Predict":
 # Model Performance
 elif page == "Model Performance":
     st.subheader("Evaluate Model on Full Dataset")
-    X = df.drop(columns=['quality', 'label'])
-    y = df['label']
+    X = df_model.drop(columns=['label'])
+    y = df_model['label']
     X_scaled = scaler.transform(X)
     y_pred = model.predict(X_scaled)
 
