@@ -9,11 +9,6 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 model = pickle.load(open("model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 
-# Create a copy for model usage
-df_model = df.copy()
-df_model['label'] = df_model['quality'].apply(lambda x: 1 if x >= 7 else 0)
-df_model.drop('quality', axis=1, inplace=True)
-
 # Sidebar
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Home", "Data Exploration", "Visualization", "Predict", "Model Performance"])
@@ -118,3 +113,4 @@ elif page == "Model Performance":
     cm = confusion_matrix(y, y_pred)
     fig6 = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
     st.plotly_chart(fig6)
+
