@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 
 # Load data and model
-df = pd.read_csv("data/winequality-red.csv")
+df = pd.read_csv("/content/WineQT.csv")
 model = joblib.load("model.joblib")
 
 # Preprocess data for model performance page
@@ -124,3 +124,4 @@ elif page == "Model Performance":
     st.subheader("Feature Importance")
     feat_importance = pd.Series(model.feature_importances_, index=X.columns)
     st.bar_chart(feat_importance)
+
