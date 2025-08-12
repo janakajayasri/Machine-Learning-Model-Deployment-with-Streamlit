@@ -10,7 +10,7 @@ import pickle
 # Load dataset
 @st.cache_data
 def load_data():
-    df = pd.read_csv('winequality-red.csv', sep=';')  # Assume the CSV is in the same directory
+    df = pd.read_csv('/content/WineQT.csv', sep=';')  # Assume the CSV is in the same directory
     df['label'] = df['quality'].apply(lambda x: 1 if x >= 7 else 0)
     df.drop('quality', axis=1, inplace=True)
     return df
@@ -179,3 +179,4 @@ elif page == "Model Performance":
     st.text(lr_report)
 
     st.info("Metrics are computed on a 20% test split with random_state=42 for reproducibility.")
+
